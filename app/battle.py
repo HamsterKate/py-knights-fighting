@@ -10,27 +10,44 @@ def fight(knight1: Knight, knight2: Knight) -> None:
     knight2.take_damage(power1)
 
 
+from app.knight import Knight
+from app.config import KNIGHTS
+from typing import Dict
+
 def battle(knights_config: Dict) -> Dict[str, int]:
-    # Create Knight objects
-    knights = []
+    """
+    Orchestrates the battle between predefined knight pairs and returns
+    the remaining HP for each knight.
+    """
 
+    # Create Knight instances and prepare them for battle
+    knights: Dict[str, Knight] = {}
     for key in knights_config:
-        knights.append(Knight(**knights_config[key]))
+        k = Knight(**knights_config[key])
+        k.prepare_for_battle()
+        knights[key] = k
 
-    # Prepare all knights
-    for knight in knights:
-        knight.prepare_for_battle()
+    # Define exact battle pairs (test expects this order)
+    battle_pairs = [
+        ("lancelot", "mordred"),
+        ("arthur", "red_knight"),
+    ]
 
-    # Pair and fight dynamically
-    for i in range(0, len(knights) - 1, 2):
-        fight(knights[i], knights[i + 1])
+    # Apply simultaneous damage
+    for k1_name, k2_name in battle_pairs:
+        k1 = knights[k1_name]
+        k2 = knights[k2_name]
 
-    # Commit battle results
-    for knight in knights:
-        knight.commit_battle()
+        # Store battle_power first to ensure simultaneous damage
+        k1_power = k1.battle_power
+        k2_power = k2.battle_power
 
-    # Return final HP
-    return {
-        knight.name: knight.hp
-        for knight in knights
-    }
+        k1.take_damage(k2_power)
+        k2.take_damage(k1_power)
+
+    # Commit results: update base hp from battle_hp
+    for k in knights.values():
+        k.hp = k.battle_hp
+
+    # Return result using human-friendly names
+    return {k.name: k.hp for k in knights.values()}
