@@ -1,11 +1,12 @@
 from typing import Dict
 from .knight import Knight
 
+
 def battle(knights_config: Dict[str, dict]) -> Dict[str, int]:
     # Build Knight instances
-    knights_by_key = {key: Knight(**cfg) for key, cfg in knights_config.items()}
+    knights_by_key = {key: Knight(**cfg)
+                      for key, cfg in knights_config.items()}
 
-    # Prepare all knights for battle (compute battle_hp, battle_power, protection)
     for knight in knights_by_key.values():
         knight.prepare_for_battle()
 
