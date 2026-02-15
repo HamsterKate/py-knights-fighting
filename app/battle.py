@@ -1,53 +1,26 @@
-from app.knight import Knight
 from typing import Dict
+from .knight import Knight
 
+def battle(knights_config: Dict[str, dict]) -> Dict[str, int]:
+    # Build Knight instances
+    knights_by_key = {key: Knight(**cfg) for key, cfg in knights_config.items()}
 
-def fight(knight1: Knight, knight2: Knight) -> None:
-    power1 = knight1.battle_power
-    power2 = knight2.battle_power
+    # Prepare all knights for battle (compute battle_hp, battle_power, protection)
+    for knight in knights_by_key.values():
+        knight.prepare_for_battle()
 
-    knight1.take_damage(power2)
-    knight2.take_damage(power1)
-
-
-from app.knight import Knight
-from app.config import KNIGHTS
-from typing import Dict
-
-def battle(knights_config: Dict) -> Dict[str, int]:
-    """
-    Orchestrates the battle between predefined knight pairs and returns
-    the remaining HP for each knight.
-    """
-
-    # Create Knight instances and prepare them for battle
-    knights: Dict[str, Knight] = {}
-    for key in knights_config:
-        k = Knight(**knights_config[key])
-        k.prepare_for_battle()
-        knights[key] = k
-
-    # Define exact battle pairs (test expects this order)
+    # Define exact battle pairs as required by the task
     battle_pairs = [
         ("lancelot", "mordred"),
-        ("arthur", "red_knight"),
+        ("arthur", "red_knight")
     ]
 
-    # Apply simultaneous damage
-    for k1_name, k2_name in battle_pairs:
-        k1 = knights[k1_name]
-        k2 = knights[k2_name]
+    # Execute fights with simultaneous damage
+    for k1_key, k2_key in battle_pairs:
+        k1 = knights_by_key[k1_key]
+        k2 = knights_by_key[k2_key]
+        k1.take_damage(k2.battle_power)
+        k2.take_damage(k1.battle_power)
 
-        # Store battle_power first to ensure simultaneous damage
-        k1_power = k1.battle_power
-        k2_power = k2.battle_power
-
-        k1.take_damage(k2_power)
-        k2.take_damage(k1_power)
-
-    # Commit results: update base hp from battle_hp
-    for k in knights.values():
-        k.hp = k.battle_hp
-
-    # Return result using human-friendly names
-    return {k.name: k.hp for k in knights.values()}
+    # Return post-battle HP mapping using human-friendly names
+    return {k.name: k.battle_hp for k in knights_by_key.values()}
